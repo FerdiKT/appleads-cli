@@ -5,17 +5,24 @@
 <h1 align="center">appleads</h1>
 
 <p align="center">
-  <strong>The production-ready CLI for Apple Search Ads</strong><br />
+  <strong>A powerful CLI for Apple Search Ads</strong><br />
   Scriptable · Multi-account · CI-friendly · JSON-first
 </p>
 
 <p align="center">
+  <a href="#-status"><img src="https://img.shields.io/badge/status-beta-yellow?style=flat-square" alt="Beta" /></a>
   <a href="#-quickstart"><img src="https://img.shields.io/badge/quickstart-5_min-brightgreen?style=flat-square" alt="Quickstart" /></a>
   <a href="#-installation"><img src="https://img.shields.io/badge/go_install-ready-00ADD8?style=flat-square&logo=go&logoColor=white" alt="Go Install" /></a>
   <a href="docs/GAP_MATRIX.md"><img src="https://img.shields.io/badge/API_coverage-v5-blue?style=flat-square" alt="API v5" /></a>
   <a href="#-safety-model"><img src="https://img.shields.io/badge/mutations-safe_by_default-orange?style=flat-square" alt="Safe Mutations" /></a>
   <a href="#-license"><img src="https://img.shields.io/badge/license-MIT-lightgrey?style=flat-square" alt="License" /></a>
 </p>
+
+---
+
+## ⚠️ Status
+
+> **This project is in public beta.** Core functionality (auth, campaigns, reports, keyword management) has been tested against live Apple Search Ads accounts. However, not all API endpoints and edge cases have been fully validated. Use in production at your own discretion and please [open an issue](https://github.com/FerdiKT/appleads-cli/issues) if you encounter any problems.
 
 ---
 
