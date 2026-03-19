@@ -84,6 +84,8 @@ See [`docs/RELEASE.md`](docs/RELEASE.md) for full release workflow.
 
 ## 🚀 Quickstart
 
+> **📋 First time with Apple Search Ads API?** Follow the [API Setup Guide](docs/API_SETUP.md) to create an API user and get your credentials before starting.
+
 Get up and running in **5 minutes**.
 
 ### 1️⃣ Initialize auth
