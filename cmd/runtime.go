@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"net/http"
 	"os"
 	"strings"
 	"text/tabwriter"
@@ -43,7 +42,7 @@ func ensureAccessToken(ctx context.Context, cfg *config.Config, profile *config.
 		return "", err
 	}
 
-	tokenResp, err := appleads.RequestAccessToken(ctx, http.DefaultClient, profile.EffectiveAuthURL(), profile.ClientID, clientSecret)
+	tokenResp, err := appleads.RequestAccessToken(ctx, nil, profile.EffectiveAuthURL(), profile.ClientID, clientSecret)
 	if err != nil {
 		return "", err
 	}

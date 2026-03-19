@@ -265,6 +265,10 @@ var authProfilesCloneCmd = &cobra.Command{
 		}
 
 		cp := *src
+		if src.TokenExpiresAt != nil {
+			t := *src.TokenExpiresAt
+			cp.TokenExpiresAt = &t
+		}
 		cfg.Profiles[target] = &cp
 		if err := cfg.Save(opts.ConfigPath); err != nil {
 			return err

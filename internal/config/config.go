@@ -52,6 +52,7 @@ func DefaultPath() (string, error) {
 		if readErr == nil {
 			_ = os.MkdirAll(filepath.Dir(newPath), 0o755)
 			if writeErr := os.WriteFile(newPath, data, 0o600); writeErr == nil {
+				_ = os.Remove(oldPath) // clean up legacy file
 				return newPath, nil
 			}
 		}

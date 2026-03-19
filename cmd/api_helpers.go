@@ -99,10 +99,6 @@ func callAPIAndPrint(ctx context.Context, client *appleads.Client, method, path 
 	if err := client.DoJSON(ctx, method, path, query, payload, &resp); err != nil {
 		return err
 	}
-
-	if opts.Output == "json" {
-		return printJSON(resp)
-	}
 	return printJSON(resp)
 }
 

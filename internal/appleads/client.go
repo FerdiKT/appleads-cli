@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math/rand"
 	"net"
 	"net/http"
 	"net/url"
@@ -35,6 +36,7 @@ const (
 	defaultMaxAttempts = 4
 	baseRetryDelay     = 250 * time.Millisecond
 	maxRetryDelay      = 3 * time.Second
+	maxResponseBytes   = 10 << 20 // 10 MB
 )
 
 func shouldRetryStatus(status int) bool {
@@ -67,7 +69,9 @@ func retryDelay(attempt int) time.Duration {
 	if delay > maxRetryDelay {
 		delay = maxRetryDelay
 	}
-	return delay
+	// Add jitter (up to 25% of delay) to avoid thundering herd.
+	jitter := time.Duration(rand.Int63n(int64(delay) / 4))
+	return delay + jitter
 }
 
 func (c *Client) doJSON(ctx context.Context, method, endpoint string, query url.Values, reqBody any, out any) error {
@@ -128,7 +132,7 @@ func (c *Client) doJSON(ctx context.Context, method, endpoint string, query url.
 			return lastErr
 		}
 
-		rawResp, readErr := io.ReadAll(resp.Body)
+		rawResp, readErr := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 		resp.Body.Close()
 		if readErr != nil {
 			lastErr = fmt.Errorf("read api response: %w", readErr)
