@@ -16,12 +16,12 @@
       <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0"/>
     </radialGradient>
     <!-- Terminal background -->
-    <linearGradient id="termBg" x1="660" y1="60" x2="660" y2="340" gradientUnits="userSpaceOnUse">
+    <linearGradient id="termBg" x1="660" y1="60" x2="660" y2="365" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#1a1f2e"/>
       <stop offset="100%" stop-color="#151925"/>
     </linearGradient>
     <!-- Terminal border -->
-    <linearGradient id="termBorder" x1="660" y1="60" x2="660" y2="340" gradientUnits="userSpaceOnUse">
+    <linearGradient id="termBorder" x1="660" y1="60" x2="660" y2="365" gradientUnits="userSpaceOnUse">
       <stop offset="0%" stop-color="#2d3548"/>
       <stop offset="100%" stop-color="#1e2433"/>
     </linearGradient>
@@ -83,8 +83,8 @@
   <!-- Right side: Terminal window -->
   <g transform="translate(500, 40)">
     <!-- Terminal outer frame -->
-    <rect x="0" y="0" width="640" height="320" rx="12" fill="url(#termBorder)"/>
-    <rect x="1" y="1" width="638" height="318" rx="11" fill="url(#termBg)"/>
+    <rect x="0" y="0" width="640" height="345" rx="12" fill="url(#termBorder)"/>
+    <rect x="1" y="1" width="638" height="343" rx="11" fill="url(#termBg)"/>
 
     <!-- Title bar -->
     <rect x="1" y="1" width="638" height="36" rx="11" fill="#1e2433"/>
@@ -144,21 +144,13 @@
       </text>
 
       <!-- Line 10-15: JSON output -->
-      <text y="164" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" fill="#94a3b8">{</text>
-      <text y="182" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5">
-        <tspan fill="#94a3b8">  "</tspan><tspan fill="#7dd3fc">campaigns</tspan><tspan fill="#94a3b8">": [</tspan>
-      </text>
-      <text y="200" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5">
-        <tspan fill="#94a3b8">    { "</tspan><tspan fill="#7dd3fc">name</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#a5b4fc">Brand - US</tspan><tspan fill="#94a3b8">", "</tspan><tspan fill="#7dd3fc">status</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#34d399">ENABLED</tspan><tspan fill="#94a3b8">" },</tspan>
-      </text>
-      <text y="218" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5">
-        <tspan fill="#94a3b8">    { "</tspan><tspan fill="#7dd3fc">name</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#a5b4fc">Discovery - EU</tspan><tspan fill="#94a3b8">", "</tspan><tspan fill="#7dd3fc">status</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#34d399">ENABLED</tspan><tspan fill="#94a3b8">" },</tspan>
-      </text>
-      <text y="236" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5">
-        <tspan fill="#94a3b8">    { "</tspan><tspan fill="#7dd3fc">name</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#a5b4fc">Competitor - JP</tspan><tspan fill="#94a3b8">", "</tspan><tspan fill="#7dd3fc">status</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#fbbf24">PAUSED</tspan><tspan fill="#94a3b8">" }</tspan>
-      </text>
-      <text y="254" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" fill="#94a3b8">  ]</text>
-      <text y="268" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" fill="#94a3b8">}</text>
+      <text y="164" x="0" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" fill="#94a3b8">{</text>
+      <text y="182" x="0" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" xml:space="preserve"><tspan fill="#94a3b8">  "</tspan><tspan fill="#7dd3fc">campaigns</tspan><tspan fill="#94a3b8">": [</tspan></text>
+      <text y="200" x="0" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" xml:space="preserve"><tspan fill="#94a3b8">    { "</tspan><tspan fill="#7dd3fc">name</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#a5b4fc">Brand - US</tspan><tspan fill="#94a3b8">", "</tspan><tspan fill="#7dd3fc">status</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#34d399">ENABLED</tspan><tspan fill="#94a3b8">" },</tspan></text>
+      <text y="218" x="0" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" xml:space="preserve"><tspan fill="#94a3b8">    { "</tspan><tspan fill="#7dd3fc">name</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#a5b4fc">Discovery - EU</tspan><tspan fill="#94a3b8">", "</tspan><tspan fill="#7dd3fc">status</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#34d399">ENABLED</tspan><tspan fill="#94a3b8">" },</tspan></text>
+      <text y="236" x="0" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" xml:space="preserve"><tspan fill="#94a3b8">    { "</tspan><tspan fill="#7dd3fc">name</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#a5b4fc">Competitor - JP</tspan><tspan fill="#94a3b8">", "</tspan><tspan fill="#7dd3fc">status</tspan><tspan fill="#94a3b8">": "</tspan><tspan fill="#fbbf24">PAUSED</tspan><tspan fill="#94a3b8">" }</tspan></text>
+      <text y="254" x="0" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" xml:space="preserve" fill="#94a3b8">  ]</text>
+      <text y="268" x="0" font-family="SF Mono, Menlo, Consolas, monospace" font-size="12.5" fill="#94a3b8">}</text>
     </g>
   </g>
 </svg>
