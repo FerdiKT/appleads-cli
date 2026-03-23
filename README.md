@@ -405,7 +405,7 @@ appleads campaigns list --limit 20 --output json | jq '.data[].name'
 
 ## 📄 License
 
-[MIT](LICENSE) — Add a `LICENSE` file before public distribution.
+[MIT](LICENSE)
 
 ---
 
