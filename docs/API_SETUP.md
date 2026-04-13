@@ -1,6 +1,6 @@
-# Apple Search Ads API Setup Guide
+# Apple Ads API Setup Guide
 
-Before using `appleads`, you need an Apple Search Ads account with API access. This guide walks you through the entire setup — from creating an API user to making your first API call.
+Before using `appleads`, you need an Apple Ads user with enough access to the target account or campaign groups. This guide walks through the current OAuth flow from zero to the first API call.
 
 > **Time required:** ~10 minutes
 
@@ -9,56 +9,51 @@ Before using `appleads`, you need an Apple Search Ads account with API access. T
 ## Prerequisites
 
 - An [Apple Search Ads Advanced](https://searchads.apple.com) account
-- Account administrator access (to invite API users)
 - `appleads` CLI installed ([installation guide](../README.md#-installation))
+- An Apple Ads user that can access the account you want to manage
+
+### Which user should you use?
+
+Use the Apple Ads login that will own API access.
+
+- If you already have the right Apple Ads access, use your existing login.
+- If another person will operate the CLI, invite them first in Apple Ads.
+- For Campaign Management API setup, Apple's documented flow uses a designated API user, which is usually a separate Apple ID invited through User Management.
+- Do not assume the primary/admin Apple Ads login is the same thing as the API user.
+- OAuth does **not** replace Apple Ads permissions. The user must still have access to the target account or campaign groups.
+- For third-party OAuth authorizations such as RevenueCat, RevenueCat currently documents that the granting user should be an **Account Admin** or **Campaign Group Manager**.
 
 ---
 
-## Step 1 — Invite an API User
+## Step 1 — Make sure the Apple Ads user can access the account
 
-If you're the account admin **and** the API user, you still need to assign yourself an API role.
+If you are not already using a suitable API user:
 
-1. Sign in at [ads.apple.com](https://ads.apple.com) → **Sign In** → **Advanced**
-2. Click the **user menu** (top-right corner) and select the account you want to manage
-3. Go to **Account Settings** → **User Management**
-4. Click **Invite Users**
-5. Fill in the details:
+1. Sign in at [ads.apple.com](https://ads.apple.com) with an admin-capable account
+2. Open **Account Settings** → **User Management**
+3. Invite a separate Apple ID that will act as the API user for `appleads`
+4. Grant the minimum API-capable access needed for that user
+5. Accept the invitation on that separate Apple ID and confirm it can see the relevant account or campaign groups
 
-   | Field | Value |
-   |---|---|
-   | First name / Last name | Your name (or service account name) |
-   | Apple ID | The Apple ID email for the API user |
-   | Role | **API Account Manager** (read + write) |
-
-   > **💡 Tip:** If you only need read access (reports, listing campaigns), choose **API Account Read Only** instead.
-
-6. Click **Send Invite**
-7. The invited user receives an email with a secure code → they must sign in and activate the account
-
-### API roles reference
-
-| Role | Capabilities |
-|---|---|
-| **API Account Manager** | Full read/write access to all campaigns, ad groups, keywords, reports |
-| **API Account Read Only** | Read-only access — can view and report but not modify |
+> The exact role names in Apple Ads can vary by account setup and region. The important point is not the label, but that the user can access the entities you expect the CLI to manage.
 
 ---
 
-## Step 2 — Generate Keys
+## Step 2 — Generate a local key pair
 
 You have two options: use `appleads` (recommended) or `openssl` manually.
 
 ### Option A: Using `appleads` (recommended)
 
 ```bash
-# Generate an EC P-256 key pair
+# Generate a P-256 key pair locally
 appleads auth keygen
 
-# Print the public key (PEM format)
+# Print the public key again later if needed
 appleads auth public-key
 ```
 
-`appleads` stores the private key securely in your profile configuration.
+`appleads` stores the private key path in your selected profile. The private key stays on your machine.
 
 ### Option B: Using OpenSSL manually
 
@@ -77,13 +72,13 @@ cat public-key.pem
 
 ---
 
-## Step 3 — Upload Public Key to Apple Ads
+## Step 3 — Upload the public key and collect Apple credentials
 
-1. Sign in at [ads.apple.com](https://ads.apple.com) **as the API user** (the one you invited in Step 1)
-2. Go to **Account Settings** → **API**
-3. Paste the entire public key into the **Public Key** field, including the `-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----` lines
+1. Sign in at [ads.apple.com](https://ads.apple.com) **as the API user Apple ID** you will use with `appleads`
+2. Open **Account Settings** → **Client Credentials** (or **API**, depending on the UI version)
+3. Paste the entire public key, including the `-----BEGIN PUBLIC KEY-----` and `-----END PUBLIC KEY-----` lines
 4. Click **Save**
-5. Apple will display three credentials — **save them all:**
+5. Apple will display three values. Copy all of them:
 
 ```
 clientId   SEARCHADS.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
@@ -91,11 +86,13 @@ teamId     SEARCHADS.xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 keyId      xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx
 ```
 
-> These credentials are shown **only once.** If you lose them, you'll need to re-upload a new public key.
+`appleads auth init` can accept this block as a direct paste. You do not need to copy the three values one by one.
+
+> These values are typically shown **once**. If you lose them, the safest recovery path is to upload a new public key and rotate the key pair.
 
 ---
 
-## Step 4 — Configure `appleads`
+## Step 4 — Save the credentials in `appleads`
 
 Now save these credentials in your `appleads` profile:
 
@@ -114,19 +111,25 @@ appleads auth init
 
 ---
 
-## Step 5 — Generate Token & Select Org
+## Step 5 — Create a token and select an org
 
 ```bash
-# Generate an access token (valid for 1 hour)
+# Generate an access token
 appleads auth token
 
-# List available orgs and select one interactively
+# List available orgs and save one interactively
 appleads auth orgs --select
 ```
 
+Notes:
+
+- `org_id` is **not** required to mint the token.
+- `org_id` **is** required by most campaign, keyword, ad, and report commands.
+- If you prefer not to save one globally, you can pass `--org-id` on individual commands.
+
 ---
 
-## Step 6 — Verify Everything
+## Step 6 — Verify everything
 
 Run the built-in health check to make sure everything is configured correctly:
 
@@ -149,7 +152,7 @@ You should see all green checks:
 
 ---
 
-## Step 7 — First API Call
+## Step 7 — First API call
 
 ```bash
 # List your campaigns
@@ -159,7 +162,7 @@ appleads campaigns list --limit 5
 appleads reports template campaigns --preset last-7d --run
 ```
 
-🎉 **You're all set!**
+You are ready to use the CLI.
 
 ---
 
@@ -169,7 +172,7 @@ appleads reports template campaigns --preset last-7d --run
 |---|---|
 | **"org_id is not set"** | Run `appleads auth orgs --select` |
 | **401 Unauthorized** | Your token may have expired. Run `appleads auth token` to refresh |
-| **403 Forbidden** | Check that your API user role has the right permissions |
+| **403 Forbidden** | The Apple Ads user lacks access to this account, campaign group, or action |
 | **"private key not found"** | If you used OpenSSL, make sure you ran `appleads auth init` and pointed to the key file |
 | **Doctor shows ✗ on "API reachable"** | Check your internet connection and that the org is correctly selected |
 
@@ -199,8 +202,8 @@ See the [main README](../README.md#-multi-account-workflow) for more profile ope
 ## Security Best Practices
 
 - **Never commit** `.pem` private keys or `config.json` files to version control
-- Use **separate API users** for different team members
-- Prefer **API Account Read Only** role when write access isn't needed
+- Use separate Apple Ads users or profiles when ownership boundaries matter
+- Prefer the least-privileged Apple Ads role that still fits the workflow
 - **Rotate keys** periodically — regenerate and re-upload
 - Use `appleads auth profiles export` through **secured channels** only
 

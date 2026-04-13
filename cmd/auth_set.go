@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/ferdikt/appleads-cli/internal/config"
 	"github.com/spf13/cobra"
@@ -34,6 +35,20 @@ func init() {
 var authSetCmd = &cobra.Command{
 	Use:   "set",
 	Short: "Set profile credentials and API settings",
+	Long: strings.TrimSpace(`
+Save Apple Ads OAuth values in the selected profile.
+
+The main values are:
+  - client_id: shown by Apple after you upload a public key
+  - team_id: shown by Apple with the client credentials
+  - key_id: shown by Apple and used as the JWT kid
+  - private_key_path: your local .p8 file that matches the uploaded public key
+  - org_id: optional here, but required by most campaign/report commands
+`),
+	Example: strings.TrimSpace(`
+  appleads auth set --client-id "SEARCHADS.abc" --team-id "SEARCHADS.def" --key-id "1234" --private-key-path ~/.config/appleads/default.p8
+  appleads auth set --org-id 12345678
+`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, err := loadConfig()
 		if err != nil {
@@ -58,6 +73,9 @@ var authSetCmd = &cobra.Command{
 			p.PrivateKeyPath = authSetFlags.PrivateKeyPath
 		}
 		if cmd.Flags().Changed("api-version") {
+			if authSetFlags.APIVersion != "" && !config.IsValidAPIVersion(authSetFlags.APIVersion) {
+				return fmt.Errorf("invalid api version %q: expected format like v5", authSetFlags.APIVersion)
+			}
 			p.APIVersion = authSetFlags.APIVersion
 		}
 		if cmd.Flags().Changed("api-base-url") {

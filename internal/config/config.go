@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"sort"
+	"strings"
 	"time"
 )
 
@@ -15,6 +17,8 @@ const (
 	defaultAPIBaseURL = "https://api.searchads.apple.com"
 	defaultAuthURL    = "https://appleid.apple.com/auth/oauth2/token"
 )
+
+var apiVersionPattern = regexp.MustCompile(`^v[0-9]+$`)
 
 type Config struct {
 	ActiveProfile string              `json:"active_profile,omitempty"`
@@ -162,10 +166,10 @@ func (c *Config) ProfileNames() []string {
 }
 
 func (p *Profile) EffectiveAPIVersion() string {
-	if p.APIVersion == "" {
+	if !IsValidAPIVersion(p.APIVersion) {
 		return defaultAPIVersion
 	}
-	return p.APIVersion
+	return strings.TrimSpace(p.APIVersion)
 }
 
 func (p *Profile) EffectiveAPIBaseURL() string {
@@ -195,4 +199,12 @@ func (p *Profile) ResolvePrivateKeyPEM() ([]byte, error) {
 	default:
 		return nil, errors.New("private key is not configured (set private_key_path or private_key_pem)")
 	}
+}
+
+func IsValidAPIVersion(v string) bool {
+	v = strings.TrimSpace(v)
+	if v == "" {
+		return false
+	}
+	return apiVersionPattern.MatchString(v)
 }

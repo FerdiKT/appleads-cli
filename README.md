@@ -69,7 +69,7 @@ go install github.com/ferdikt/appleads-cli@latest
 git clone https://github.com/FerdiKT/appleads-cli.git
 cd appleads-cli
 make tidy
-make build VERSION=1.2.0
+make build VERSION=1.1.0
 ./bin/appleads version
 ```
 
@@ -79,7 +79,7 @@ make build VERSION=1.2.0
 <summary><strong>Option 4 — Multi-arch release binaries</strong></summary>
 
 ```bash
-make dist VERSION=1.2.0
+make dist VERSION=1.1.0
 ls dist/
 ```
 
@@ -91,18 +91,34 @@ See [`docs/RELEASE.md`](docs/RELEASE.md) for full release workflow.
 
 ## 🚀 Quickstart
 
-> **📋 First time with Apple Search Ads API?** Follow the [API Setup Guide](docs/API_SETUP.md) to create an API user and get your credentials before starting.
+> **📋 First time with Apple Ads API?** Follow the [API Setup Guide](docs/API_SETUP.md) for the current OAuth flow: pick the right Apple Ads user, generate a key pair, upload the public key, collect `clientId/teamId/keyId`, then create a token.
 
 Get up and running in **5 minutes**.
 
 ### 1️⃣ Initialize auth
+
+What this actually means:
+
+1. Use an Apple Ads login that can access the target account or campaign groups.
+   In practice this is usually a separate Apple ID invited as the API user, not the primary admin login.
+2. Generate a local private/public key pair.
+3. Upload the **public key** in Apple Ads to generate `clientId`, `teamId`, and `keyId`.
+4. Save those values locally and mint a token.
+
+When Apple shows the credentials, you can paste the full 3-line block directly into the wizard:
+
+```text
+clientId SEARCHADS....
+teamId SEARCHADS....
+keyId  xxxxxxxx-....
+```
 
 ```bash
 # Create your first profile
 appleads auth init
 ```
 
-Don't have API keys yet? Generate them on the fly:
+`appleads auth init` now guides that sequence interactively. If you prefer to do it step by step:
 
 ```bash
 appleads auth keygen          # generate EC P-256 keypair
@@ -124,6 +140,8 @@ appleads auth set \
 appleads auth token           # exchange credentials for access token
 appleads auth orgs --select   # pick your org interactively
 ```
+
+`org_id` is optional for token creation, but required by most campaign/report commands.
 
 ### 3️⃣ Verify everything works
 

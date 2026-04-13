@@ -3,6 +3,7 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/ferdikt/appleads-cli/internal/keys"
 	"github.com/spf13/cobra"
@@ -20,6 +21,16 @@ func init() {
 var authPublicKeyCmd = &cobra.Command{
 	Use:   "public-key",
 	Short: "Print uploadable public key from private key",
+	Long: strings.TrimSpace(`
+Print the PUBLIC KEY derived from your local private key.
+
+Upload this PEM block in Apple Ads > Account Settings > Client Credentials (or API).
+Do not upload the private key.
+`),
+	Example: strings.TrimSpace(`
+  appleads auth public-key
+  appleads auth public-key --private-key-path ~/.config/appleads/default.p8
+`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		privateKeyPath := authPublicKeyFlags.PrivateKeyPath
 		if privateKeyPath == "" {

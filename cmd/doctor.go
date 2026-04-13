@@ -77,6 +77,12 @@ var doctorCmd = &cobra.Command{
 			add("auth.required_fields", "pass", "client_id/team_id/key_id present")
 		}
 
+		if strings.TrimSpace(profile.APIVersion) != "" && !config.IsValidAPIVersion(profile.APIVersion) {
+			add("auth.api_version", "warn", fmt.Sprintf("configured api_version=%q is invalid; falling back to %s", profile.APIVersion, profile.EffectiveAPIVersion()))
+		} else {
+			add("auth.api_version", "pass", "api_version="+profile.EffectiveAPIVersion())
+		}
+
 		privateKeyPEM, keyErr := profile.ResolvePrivateKeyPEM()
 		if keyErr != nil {
 			add("auth.private_key", "fail", keyErr.Error())

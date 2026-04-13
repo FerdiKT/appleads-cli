@@ -3,6 +3,7 @@ package cmd
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/ferdikt/appleads-cli/internal/appleads"
@@ -24,6 +25,17 @@ func init() {
 var authTokenCmd = &cobra.Command{
 	Use:   "token",
 	Short: "Create an OAuth access token",
+	Long: strings.TrimSpace(`
+Create an Apple Ads OAuth access token for the selected profile.
+
+This command uses the saved client_id, team_id, key_id, and private_key_path to build a client secret
+and exchanges it for an access token from Apple. org_id is not required for token creation.
+`),
+	Example: strings.TrimSpace(`
+  appleads auth token
+  appleads auth token --show
+  appleads -p agency auth token --no-save
+`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, profile, err := loadProfile()
 		if err != nil {
@@ -71,6 +83,9 @@ var authTokenCmd = &cobra.Command{
 			fmt.Printf("token created (expires at %s)\n", expiresAt.Format(time.RFC3339))
 		} else {
 			fmt.Printf("token created and saved to profile %q (expires at %s)\n", opts.Profile, expiresAt.Format(time.RFC3339))
+		}
+		if profile.OrgID <= 0 {
+			fmt.Println("next: run `appleads auth orgs --select` so campaign/report commands know which org to use.")
 		}
 		return nil
 	},

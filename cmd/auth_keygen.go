@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/ferdikt/appleads-cli/internal/keys"
 	"github.com/spf13/cobra"
@@ -30,7 +31,16 @@ func init() {
 var authKeygenCmd = &cobra.Command{
 	Use:   "keygen",
 	Short: "Generate Apple Ads OAuth key pair (P-256)",
-	Long:  "Generates a local ES256 key pair, stores private/public keys in files, and prints the public key to upload in Apple Ads.",
+	Long: strings.TrimSpace(`
+Generate a local ES256 key pair for Apple Ads OAuth.
+
+Use the generated PUBLIC KEY in Apple Ads > Account Settings > Client Credentials (or API).
+Apple will then show clientId, teamId, and keyId. Keep the PRIVATE KEY local and secret.
+`),
+	Example: strings.TrimSpace(`
+  appleads auth keygen
+  appleads -p agency auth keygen --private-key-out ~/.config/appleads/agency.p8
+`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		privateOut, publicOut, err := resolveKeyOutputPaths(authKeygenFlags.PrivateKeyOut, authKeygenFlags.PublicKeyOut, opts.Profile)
 		if err != nil {
@@ -92,7 +102,8 @@ var authKeygenCmd = &cobra.Command{
 		if authKeygenFlags.SaveProfile {
 			fmt.Printf("profile %q updated with private_key_path.\n", opts.Profile)
 		}
-		fmt.Println("Upload the PUBLIC KEY below in Apple Ads > Client Credentials:")
+		fmt.Println("Next step: upload the PUBLIC KEY below in Apple Ads > Account Settings > Client Credentials (or API).")
+		fmt.Println("Then copy clientId, teamId, and keyId back into `appleads auth init` or `appleads auth set`.")
 		if authKeygenFlags.ShowPublicKey {
 			fmt.Println()
 			fmt.Print(string(publicPEM))

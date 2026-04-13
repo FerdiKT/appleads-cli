@@ -25,6 +25,16 @@ func init() {
 var authOrgsCmd = &cobra.Command{
 	Use:   "orgs",
 	Short: "Fetch accessible organizations and optionally select one",
+	Long: strings.TrimSpace(`
+Fetch the organizations visible to the current token and optionally save one as org_id.
+
+Use this after 'appleads auth token'. Most campaign, keyword, ad, and report commands need org_id.
+If you prefer not to save one globally, you can also pass --org-id directly on those commands.
+`),
+	Example: strings.TrimSpace(`
+  appleads auth orgs --select
+  appleads auth orgs --output json
+`),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, profile, err := loadProfile()
 		if err != nil {
