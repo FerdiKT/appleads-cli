@@ -250,10 +250,29 @@ appleads reports campaigns  --body-file ./payloads/report-campaigns.json
       <td>—</td>
       <td>Raw API caller for any endpoint</td>
     </tr>
+    <tr>
+      <td><code>agent</code></td>
+      <td>install-skill · link-skill · show-skill-path</td>
+      <td>Install bundled Codex skill assets</td>
+    </tr>
   </tbody>
 </table>
 
 > **Full reference:** `appleads --help` · `appleads <group> --help` · `appleads <group> <command> --help`
+
+Repo-local guidance also lives in [`AGENTS.md`](AGENTS.md) and [`skills/appleads-cli/SKILL.md`](skills/appleads-cli/SKILL.md).
+
+To install the bundled Codex skill directly from the CLI:
+
+```bash
+appleads agent install-skill
+```
+
+For local development, if you want a symlink instead of a copied install:
+
+```bash
+appleads agent link-skill --source ./skills/appleads-cli
+```
 
 ---
 
