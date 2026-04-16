@@ -1,0 +1,3 @@
+display_name: Apple Ads CLI
+short_description: Work with the local Apple Ads agent-first CLI using profile-first, org-aware workflows.
+default_prompt: Use the local appleads CLI. Resolve the target auth profile first, verify token and org readiness before data commands, prefer JSON output, and use typed commands before falling back to appleads api.
