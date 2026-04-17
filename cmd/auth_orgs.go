@@ -36,41 +36,13 @@ If you prefer not to save one globally, you can also pass --org-id directly on t
   appleads auth orgs --output json
 `),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		cfg, profile, err := loadProfile()
+		cfg, profile, resp, apiVersionUsed, err := loadOrganizationsForCurrentProfile()
 		if err != nil {
 			return err
 		}
-
-		token, err := ensureAccessToken(context.Background(), cfg, profile)
-		if err != nil {
+		if err := renderOrganizationList(profile, resp, apiVersionUsed); err != nil {
 			return err
 		}
-
-		resp, apiVersionUsed, err := fetchUserACLsWithFallback(profile, token)
-		if err != nil {
-			return err
-		}
-		if len(resp.Data) == 0 {
-			return fmt.Errorf("no organizations found for this token")
-		}
-
-		if opts.Output == "json" {
-			return printJSON(map[string]any{
-				"profile":          opts.Profile,
-				"api_version_used": apiVersionUsed,
-				"current_org_id":   profile.OrgID,
-				"orgs":             resp.Data,
-			})
-		}
-
-		w := tableWriter()
-		fmt.Fprintln(w, "#\tORG_ID\tORG_NAME\tPARENT_ORG_ID\tCURRENCY\tTIMEZONE\tROLES")
-		for i, org := range resp.Data {
-			roles := strings.Join(org.RoleNames, ",")
-			fmt.Fprintf(w, "%d\t%d\t%s\t%d\t%s\t%s\t%s\n", i+1, org.OrgID, org.OrgName, org.ParentOrgID, org.Currency, org.TimeZone, roles)
-		}
-		_ = w.Flush()
-		fmt.Printf("API version used for ACL lookup: %s\n", apiVersionUsed)
 
 		if !authOrgsFlags.Select || !stdinIsTTY() {
 			if profile.OrgID <= 0 {
@@ -88,14 +60,60 @@ If you prefer not to save one globally, you can also pass --org-id directly on t
 			return nil
 		}
 
-		profile.OrgID = selectedOrgID
-		if err := cfg.Save(opts.ConfigPath); err != nil {
+		if err := saveSelectedOrgID(cfg, profile, selectedOrgID); err != nil {
 			return err
 		}
 
 		fmt.Printf("saved org_id=%d to profile %q\n", selectedOrgID, opts.Profile)
 		return nil
 	},
+}
+
+func loadOrganizationsForCurrentProfile() (*config.Config, *config.Profile, *appleads.UserACLListResponse, string, error) {
+	cfg, profile, err := loadProfile()
+	if err != nil {
+		return nil, nil, nil, "", err
+	}
+
+	token, err := ensureAccessToken(context.Background(), cfg, profile)
+	if err != nil {
+		return nil, nil, nil, "", err
+	}
+
+	resp, apiVersionUsed, err := fetchUserACLsWithFallback(profile, token)
+	if err != nil {
+		return nil, nil, nil, "", err
+	}
+	if len(resp.Data) == 0 {
+		return nil, nil, nil, "", fmt.Errorf("no organizations found for this token")
+	}
+	return cfg, profile, resp, apiVersionUsed, nil
+}
+
+func renderOrganizationList(profile *config.Profile, resp *appleads.UserACLListResponse, apiVersionUsed string) error {
+	if opts.Output == "json" {
+		return printJSON(map[string]any{
+			"profile":          opts.Profile,
+			"api_version_used": apiVersionUsed,
+			"current_org_id":   profile.OrgID,
+			"orgs":             resp.Data,
+		})
+	}
+
+	w := tableWriter()
+	fmt.Fprintln(w, "#\tORG_ID\tORG_NAME\tPARENT_ORG_ID\tCURRENCY\tTIMEZONE\tROLES")
+	for i, org := range resp.Data {
+		roles := strings.Join(org.RoleNames, ",")
+		fmt.Fprintf(w, "%d\t%d\t%s\t%d\t%s\t%s\t%s\n", i+1, org.OrgID, org.OrgName, org.ParentOrgID, org.Currency, org.TimeZone, roles)
+	}
+	_ = w.Flush()
+	fmt.Printf("API version used for ACL lookup: %s\n", apiVersionUsed)
+	return nil
+}
+
+func saveSelectedOrgID(cfg *config.Config, profile *config.Profile, orgID int64) error {
+	profile.OrgID = orgID
+	return cfg.Save(opts.ConfigPath)
 }
 
 func fetchUserACLsWithFallback(profile *config.Profile, token string) (*appleads.UserACLListResponse, string, error) {

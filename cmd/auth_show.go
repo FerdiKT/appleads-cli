@@ -12,8 +12,9 @@ func init() {
 }
 
 var authShowCmd = &cobra.Command{
-	Use:   "show",
-	Short: "Show active profile configuration (token redacted)",
+	Use:     "show",
+	Aliases: []string{"status"},
+	Short:   "Show active profile configuration (token redacted)",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		cfg, profile, err := loadProfile()
 		if err != nil {

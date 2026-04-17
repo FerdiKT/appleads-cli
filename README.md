@@ -139,6 +139,7 @@ appleads auth set \
 ```bash
 appleads auth token           # exchange credentials for access token
 appleads auth orgs --select   # pick your org interactively
+appleads auth status --json   # inspect active auth/profile state
 ```
 
 `org_id` is optional for token creation, but required by most campaign/report commands.
@@ -153,7 +154,9 @@ appleads doctor               # runs 7-layer health check ✅
 
 ```bash
 appleads campaigns list --limit 5
-appleads reports template campaigns --preset last-7d
+appleads orgs list --json
+appleads reports campaigns --start-date 2026-04-10 --end-date 2026-04-16 --json
+appleads campaigns health --json
 ```
 
 ### 5️⃣ Body-based commands (LLM-friendly)
@@ -182,8 +185,13 @@ appleads reports campaigns  --body-file ./payloads/report-campaigns.json
   <tbody>
     <tr>
       <td><code>auth</code></td>
-      <td>init · set · token · orgs · keygen · public-key · show</td>
+      <td>init · set · token · orgs · keygen · public-key · show/status</td>
       <td>OAuth setup, profile management</td>
+    </tr>
+    <tr>
+      <td><code>orgs</code></td>
+      <td>list · use</td>
+      <td>Top-level org discovery and switching</td>
     </tr>
     <tr>
       <td><code>doctor</code></td>
@@ -192,7 +200,7 @@ appleads reports campaigns  --body-file ./payloads/report-campaigns.json
     </tr>
     <tr>
       <td><code>campaigns</code></td>
-      <td>list · get · create · update · delete · find · enable · pause</td>
+      <td>list · get · create · update · delete · find · enable · pause · health</td>
       <td>Full CRUD + quick actions</td>
     </tr>
     <tr>
@@ -320,12 +328,16 @@ Mutations are **safe by default**. Every destructive or state-changing command s
 | `--dry-run` | Preview the payload without calling the API |
 | *(default)* | Interactive confirmation prompt |
 | `--yes` | Bypass prompt — designed for CI/CD pipelines |
+| `--confirm-org <id>` | Abort if the resolved org does not match the expected org |
 
 ```bash
 # Preview what would happen
 appleads targeting country add \
   --campaign-id 123456 --adgroup-id 987654 \
   --codes US,CA --dry-run
+
+# Lock the command to one org before sending
+appleads campaigns enable 123456 --confirm-org 8526150 --yes
 
 # Execute with auto-confirm (CI mode)
 appleads targeting country add \
@@ -336,6 +348,18 @@ appleads targeting country add \
 ---
 
 ## 📊 Reporting & Templates
+
+Use first-class date flags for common report pulls:
+
+```bash
+appleads reports campaigns --start-date 2026-04-10 --end-date 2026-04-16
+appleads reports searchterms --campaign-id 123456 --start-date 2026-04-10 --end-date 2026-04-16 --time-zone ORTZ
+```
+
+`appleads reports ...` now fills sane request defaults when possible:
+- `selector.pagination` defaults to `offset=0, limit=1000`
+- `selector.orderBy` is added automatically per report type
+- when neither `granularity` nor row totals are supplied, `returnRowTotals=true` is added
 
 Generate report payloads in seconds with built-in presets:
 
@@ -399,11 +423,11 @@ appleads api --method POST --path /campaigns/find --body-file ./payloads/campaig
 | API base URL | `https://api.searchads.apple.com` |
 | OAuth token URL | `https://appleid.apple.com/auth/oauth2/token` |
 
-**Global flags:** `--output table|json` · `--profile <name>` · `--config <path>`
+**Global flags:** `--output table|json` · `--json` · `--profile <name>` · `--config <path>` · `--confirm-org <id>`
 
 ```bash
 # JSON output for automation pipelines
-appleads campaigns list --limit 20 --output json | jq '.data[].name'
+appleads campaigns list --limit 20 --json | jq '.data[].name'
 ```
 
 ---

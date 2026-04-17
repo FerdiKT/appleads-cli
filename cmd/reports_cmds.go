@@ -9,10 +9,15 @@ import (
 )
 
 type reportCallFlags struct {
-	OrgID      int64
-	CampaignID int64
-	Body       string
-	BodyFile   string
+	OrgID           int64
+	CampaignID      int64
+	Body            string
+	BodyFile        string
+	StartDate       string
+	EndDate         string
+	Granularity     string
+	TimeZone        string
+	ReturnRowTotals bool
 }
 
 var reportsCampaignsFlags reportCallFlags
@@ -43,6 +48,12 @@ func addReportFlags(cmd *cobra.Command, flags *reportCallFlags, campaignRequired
 	cmd.Flags().Int64Var(&flags.CampaignID, "campaign-id", 0, "Campaign ID")
 	cmd.Flags().StringVar(&flags.Body, "body", "", "Inline JSON report request")
 	cmd.Flags().StringVar(&flags.BodyFile, "body-file", "", "Path to JSON report request file")
+	cmd.Flags().StringVar(&flags.StartDate, "start-date", "", "Report start date (YYYY-MM-DD)")
+	cmd.Flags().StringVar(&flags.EndDate, "end-date", "", "Report end date (YYYY-MM-DD)")
+	cmd.Flags().StringVar(&flags.Granularity, "granularity", "", "Report granularity (HOURLY|DAILY|WEEKLY)")
+	cmd.Flags().StringVar(&flags.TimeZone, "time-zone", "", "IANA timezone or ORTZ for searchterms")
+	cmd.Flags().StringVar(&flags.TimeZone, "timezone", "", "Alias for --time-zone")
+	cmd.Flags().BoolVar(&flags.ReturnRowTotals, "row-totals", false, "Request aggregated totals when granularity is omitted")
 	if campaignRequired {
 		_ = cmd.MarkFlagRequired("campaign-id")
 	}
@@ -51,63 +62,65 @@ func addReportFlags(cmd *cobra.Command, flags *reportCallFlags, campaignRequired
 var reportsCampaignsCmd = &cobra.Command{
 	Use:   "campaigns",
 	Short: "Run campaign-level report",
-	Example: "  appleads reports campaigns --body-file ./payloads/report-campaigns.json\n" +
-		"  appleads reports campaigns --body '{\"startTime\":\"2026-03-01\",\"endTime\":\"2026-03-17\",\"granularity\":\"DAILY\"}'",
+	Example: "  appleads reports campaigns --start-date 2026-03-01 --end-date 2026-03-17\n" +
+		"  appleads reports campaigns --start-date 2026-03-01 --end-date 2026-03-17 --granularity DAILY\n" +
+		"  appleads reports campaigns --body-file ./payloads/report-campaigns.json",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runReportCall("/reports/campaigns", reportsCampaignsFlags, false)
+		return runReportCall(cmd, "campaigns", "/reports/campaigns", reportsCampaignsFlags, false)
 	},
 }
 
 var reportsAdGroupsCmd = &cobra.Command{
 	Use:   "adgroups",
 	Short: "Run ad-group-level report for a campaign",
-	Example: "  appleads reports adgroups --campaign-id 123456 --body-file ./payloads/report-adgroups.json\n" +
-		"  appleads reports adgroups --campaign-id 123456 --body '{\"startTime\":\"2026-03-01\",\"endTime\":\"2026-03-17\"}'",
+	Example: "  appleads reports adgroups --campaign-id 123456 --start-date 2026-03-01 --end-date 2026-03-17\n" +
+		"  appleads reports adgroups --campaign-id 123456 --body-file ./payloads/report-adgroups.json",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runReportCall(fmt.Sprintf("/reports/campaigns/%d/adgroups", reportsAdGroupsFlags.CampaignID), reportsAdGroupsFlags, true)
+		return runReportCall(cmd, "adgroups", fmt.Sprintf("/reports/campaigns/%d/adgroups", reportsAdGroupsFlags.CampaignID), reportsAdGroupsFlags, true)
 	},
 }
 
 var reportsKeywordsCmd = &cobra.Command{
 	Use:   "keywords",
 	Short: "Run keyword-level report for a campaign",
-	Example: "  appleads reports keywords --campaign-id 123456 --body-file ./payloads/report-keywords.json\n" +
-		"  appleads reports keywords --campaign-id 123456 --body '{\"startTime\":\"2026-03-01\",\"endTime\":\"2026-03-17\"}'",
+	Example: "  appleads reports keywords --campaign-id 123456 --start-date 2026-03-01 --end-date 2026-03-17\n" +
+		"  appleads reports keywords --campaign-id 123456 --body-file ./payloads/report-keywords.json",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runReportCall(fmt.Sprintf("/reports/campaigns/%d/keywords", reportsKeywordsFlags.CampaignID), reportsKeywordsFlags, true)
+		return runReportCall(cmd, "keywords", fmt.Sprintf("/reports/campaigns/%d/keywords", reportsKeywordsFlags.CampaignID), reportsKeywordsFlags, true)
 	},
 }
 
 var reportsSearchTermsCmd = &cobra.Command{
 	Use:   "searchterms",
 	Short: "Run search-term-level report for a campaign",
-	Example: "  appleads reports searchterms --campaign-id 123456 --body-file ./payloads/report-searchterms.json\n" +
-		"  appleads reports searchterms --campaign-id 123456 --body '{\"startTime\":\"2026-03-01\",\"endTime\":\"2026-03-17\"}'",
+	Example: "  appleads reports searchterms --campaign-id 123456 --start-date 2026-03-01 --end-date 2026-03-17 --time-zone ORTZ\n" +
+		"  appleads reports searchterms --campaign-id 123456 --body-file ./payloads/report-searchterms.json",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runReportCall(fmt.Sprintf("/reports/campaigns/%d/searchterms", reportsSearchTermsFlags.CampaignID), reportsSearchTermsFlags, true)
+		return runReportCall(cmd, "searchterms", fmt.Sprintf("/reports/campaigns/%d/searchterms", reportsSearchTermsFlags.CampaignID), reportsSearchTermsFlags, true)
 	},
 }
 
 var reportsAdsCmd = &cobra.Command{
 	Use:   "ads",
 	Short: "Run ad-level report for a campaign",
-	Example: "  appleads reports ads --campaign-id 123456 --body-file ./payloads/report-ads.json\n" +
-		"  appleads reports ads --campaign-id 123456 --body '{\"startTime\":\"2026-03-01\",\"endTime\":\"2026-03-17\"}'",
+	Example: "  appleads reports ads --campaign-id 123456 --start-date 2026-03-01 --end-date 2026-03-17\n" +
+		"  appleads reports ads --campaign-id 123456 --body-file ./payloads/report-ads.json",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return runReportCall(fmt.Sprintf("/reports/campaigns/%d/ads", reportsAdsFlags.CampaignID), reportsAdsFlags, true)
+		return runReportCall(cmd, "ads", fmt.Sprintf("/reports/campaigns/%d/ads", reportsAdsFlags.CampaignID), reportsAdsFlags, true)
 	},
 }
 
 var reportsImpressionShareCmd = &cobra.Command{
 	Use:   "impressionshare",
 	Short: "Run impression-share report for a campaign",
-	Example: "  appleads reports impressionshare --campaign-id 123456 --body-file ./payloads/report-impressionshare.json\n" +
+	Example: "  appleads reports impressionshare --campaign-id 123456 --start-date 2026-03-01 --end-date 2026-03-17\n" +
+		"  appleads reports impressionshare --campaign-id 123456 --body-file ./payloads/report-impressionshare.json\n" +
 		"  appleads reports template impressionshare --campaign-id 123456 --run",
 	RunE: func(cmd *cobra.Command, args []string) error {
 		if reportsImpressionShareFlags.CampaignID <= 0 {
 			return fmt.Errorf("--campaign-id must be > 0")
 		}
-		payload, err := readJSONPayload(reportsImpressionShareFlags.Body, reportsImpressionShareFlags.BodyFile, false)
+		payload, err := buildReportPayload(cmd, "impressionshare", reportsImpressionShareFlags)
 		if err != nil {
 			return err
 		}
@@ -128,12 +141,12 @@ var reportsImpressionShareCmd = &cobra.Command{
 	},
 }
 
-func runReportCall(path string, flags reportCallFlags, campaignRequired bool) error {
+func runReportCall(cmd *cobra.Command, entity, path string, flags reportCallFlags, campaignRequired bool) error {
 	if campaignRequired && flags.CampaignID <= 0 {
 		return fmt.Errorf("--campaign-id must be > 0")
 	}
 
-	payload, err := readJSONPayload(flags.Body, flags.BodyFile, false)
+	payload, err := buildReportPayload(cmd, entity, flags)
 	if err != nil {
 		return err
 	}

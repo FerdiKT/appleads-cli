@@ -26,7 +26,8 @@ func init() {
 	reportsTemplateCmd.Flags().Int64Var(&reportsTemplateFlags.CampaignID, "campaign-id", 0, "Campaign ID (required for adgroups/keywords/searchterms/ads/impressionshare)")
 	reportsTemplateCmd.Flags().StringVar(&reportsTemplateFlags.Preset, "preset", "last-7d", "Date preset (today|yesterday|last-7d|last-30d)")
 	reportsTemplateCmd.Flags().StringVar(&reportsTemplateFlags.Granularity, "granularity", "DAILY", "Report granularity (DAILY|HOURLY|WEEKLY)")
-	reportsTemplateCmd.Flags().StringVar(&reportsTemplateFlags.TimeZone, "time-zone", "UTC", "IANA timezone or UTC")
+	reportsTemplateCmd.Flags().StringVar(&reportsTemplateFlags.TimeZone, "time-zone", "", "IANA timezone (default: UTC, or ORTZ for searchterms)")
+	reportsTemplateCmd.Flags().StringVar(&reportsTemplateFlags.TimeZone, "timezone", "", "Alias for --time-zone")
 	reportsTemplateCmd.Flags().BoolVar(&reportsTemplateFlags.Run, "run", false, "Call API immediately with generated payload")
 }
 
@@ -45,7 +46,7 @@ var reportsTemplateCmd = &cobra.Command{
 			return fmt.Errorf("--campaign-id must be > 0 for entity %q", entity)
 		}
 
-		payload, err := buildReportTemplatePayload(reportsTemplateFlags.Preset, reportsTemplateFlags.Granularity, reportsTemplateFlags.TimeZone)
+		payload, err := buildReportTemplatePayload(entity, reportsTemplateFlags.Preset, reportsTemplateFlags.Granularity, reportsTemplateFlags.TimeZone)
 		if err != nil {
 			return err
 		}
@@ -94,7 +95,7 @@ func reportEntityPath(entity string, campaignID int64) (path string, needsCampai
 	}
 }
 
-func buildReportTemplatePayload(preset, granularity, timeZone string) (map[string]any, error) {
+func buildReportTemplatePayload(entity, preset, granularity, timeZone string) (map[string]any, error) {
 	today := time.Now().UTC()
 	start, end, err := resolveDatePreset(strings.ToLower(strings.TrimSpace(preset)), today)
 	if err != nil {
@@ -110,7 +111,11 @@ func buildReportTemplatePayload(preset, granularity, timeZone string) (map[strin
 		return nil, fmt.Errorf("invalid --granularity %q", granularity)
 	}
 	if strings.TrimSpace(timeZone) == "" {
-		timeZone = "UTC"
+		timeZone = defaultReportTimeZone(entity)
+	}
+	orderField, err := defaultReportOrderField(entity)
+	if err != nil {
+		return nil, err
 	}
 
 	return map[string]any{
@@ -119,6 +124,12 @@ func buildReportTemplatePayload(preset, granularity, timeZone string) (map[strin
 		"timeZone":    timeZone,
 		"granularity": granularity,
 		"selector": map[string]any{
+			"orderBy": []any{
+				map[string]any{
+					"field":     orderField,
+					"sortOrder": "ASCENDING",
+				},
+			},
 			"pagination": map[string]any{
 				"offset": 0,
 				"limit":  1000,

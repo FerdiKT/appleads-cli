@@ -12,6 +12,8 @@ import (
 type globalOptions struct {
 	Profile    string
 	Output     string
+	JSON       bool
+	ConfirmOrg int64
 	ConfigPath string
 }
 
@@ -23,6 +25,9 @@ var rootCmd = &cobra.Command{
 	Long:  "A command line interface for Apple Ads API operations.",
 	PersistentPreRunE: func(cmd *cobra.Command, args []string) error {
 		profileChanged := cmd.Flags().Changed("profile")
+		if opts.JSON {
+			opts.Output = "json"
+		}
 		switch opts.Output {
 		case "table", "json":
 			// continue
@@ -35,6 +40,9 @@ var rootCmd = &cobra.Command{
 			if err == nil {
 				opts.Profile = cfg.EffectiveProfileName(opts.Profile)
 			}
+		}
+		if err := maybePrepareOrgMutationContext(cmd); err != nil {
+			return err
 		}
 		return nil
 	},
@@ -51,6 +59,8 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVarP(&opts.Profile, "profile", "p", "default", "Credential profile name")
 	rootCmd.PersistentFlags().StringVarP(&opts.Output, "output", "o", "table", "Output format (table|json)")
+	rootCmd.PersistentFlags().BoolVar(&opts.JSON, "json", false, "Alias for --output json")
+	rootCmd.PersistentFlags().Int64Var(&opts.ConfirmOrg, "confirm-org", 0, "Abort if the resolved org_id does not match this value")
 	rootCmd.PersistentFlags().StringVar(&opts.ConfigPath, "config", defaultConfigPath, "Config file path")
 }
 
